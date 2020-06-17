@@ -104,6 +104,7 @@ class BotFormProcessor:
 
     def send_field(self, user, field):
         form = self.get_user_form(user)
+        self.store[user.store_id]['field'] = field
         self.send_message(user, form[field]['question'])
 
     def send_error_field(self, user):
