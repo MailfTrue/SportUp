@@ -99,6 +99,8 @@ class BotFormProcessor:
         user.state = 'form'
         user.save()
         self.send_message(user, form['before_text'])
+        fields = self.get_form_fields(form_key)
+        self.send_field(user, fields[0])
 
     def send_field(self, user, field):
         form = self.get_user_form(user)
