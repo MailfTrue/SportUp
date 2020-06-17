@@ -10,8 +10,7 @@ def check_is_admin(r):
     try:
         group_data = wa.get_group_data(chat_id)
     except Exception as e:
-        print(e)
-        # wa.send_message(chat_id, 'Не удалось создать игру. Возможно, вы находитесь не в группе')
+        print('get group data exeption', e)
         return None
     result = False
     for k in group_data['participants']:
@@ -34,3 +33,10 @@ def get_func_by_path(path):
 
 def get_template(string):
     return engines['django'].from_string(string)
+
+
+def get_message_text(r):
+    try:
+        return r['messageData']['textMessageData']['textMessage']
+    except KeyError:
+        return ''

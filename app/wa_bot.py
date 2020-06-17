@@ -1,5 +1,5 @@
 from .green_api import wa
-from .utils import check_is_admin, get_template, get_current_game
+from .utils import check_is_admin, get_template, get_current_game, get_message_text
 from .models import Game, GameMember, Vote
 from .bot_form_processor import BotFormProcessor
 from . import phrases
@@ -16,18 +16,27 @@ def send_not_admin_error(chat_id, result):
         wa.send_message(chat_id, 'У вас нет прав на использование этой команды')
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/create')
+@wa.message_handler(lambda r: r['user'].state == 'form')
+def form_input(r):
+    text = get_message_text(r)
+    user = r['user']
+    form_processor.check_field(user, input_=text)
+
+
+@wa.message_handler(lambda r: get_message_text(r) == '/create')
 def create_handler(r):
+    chat_id = r['senderData']['chatId']
     is_admin = check_is_admin(r)
     if not is_admin:
-        send_not_admin_error(r['senderData']['chatId'], is_admin)
+        send_not_admin_error(chat_id, is_admin)
+        return
     form_processor.start_form('create_game', r['user'], extra_data={'chat_id': chat_id})
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/in')
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData').startswith('/addguest'))
+@wa.message_handler(lambda r: get_message_text(r) == '/in')
+@wa.message_handler(lambda r: get_message_text(r).startswith('/addguest'))
 def join_game(r):
-    guest_mode = r['messageData'].get('textMessageData').startswith('/addguest')
+    guest_mode = get_message_text(r).startswith('/addguest')
     chat_id = r['senderData']['chatId']
     game = get_current_game(chat_id)
     if not game:
@@ -47,17 +56,17 @@ def join_game(r):
     wa.send_message(chat_id, text)
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/out')
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData').startswith('/deleteguest'))
+@wa.message_handler(lambda r: get_message_text(r) == '/out')
+@wa.message_handler(lambda r: get_message_text(r).startswith('/deleteguest'))
 def leave_game(r):
-    guest_mode = r['messageData'].get('textMessageData').startswith('/deleteguest')
+    guest_mode = get_message_text(r).startswith('/deleteguest')
     chat_id = r['senderData']['chatId']
     game = get_current_game(chat_id)
     if not game:
         text = 'Игра еще не создана'
     else:
         if guest_mode:
-            guest_name = ' '.join(r['messageData'].get('textMessageData').split()[1:])
+            guest_name = ' '.join(get_message_text(r).split()[1:])
             member = GameMember.objects.filter(game=game, guest_name__icontaint=guest_name).first()
             if not member:
                 member = GameMember.objects.filter(game=game, guest_name=guest_name, guest_inviter=r['user']).first()
@@ -77,7 +86,7 @@ def leave_game(r):
     wa.send_message(chat_id, text)
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/list')
+@wa.message_handler(lambda r: get_message_text(r) == '/list')
 def game_members_list(r):
     chat_id = r['senderData']['chatId']
     game = get_current_game(chat_id)
@@ -85,7 +94,7 @@ def game_members_list(r):
     wa.send_message(chat_id, text)
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/randomize')
+@wa.message_handler(lambda r: get_message_text(r) == '/randomize')
 def game_members_list(r):
     chat_id = r['senderData']['chatId']
     game = get_current_game(chat_id)
@@ -102,7 +111,7 @@ def game_members_list(r):
     wa.send_message(chat_id, text)
 
 
-@wa.message_handler(lambda r: r['messageData'].get('textMessageData') == '/stop')
+@wa.message_handler(lambda r: get_message_text(r) == '/stop')
 def create_handler(r):
     is_admin = check_is_admin(r)
     chat_id = r['senderData']['chatId']

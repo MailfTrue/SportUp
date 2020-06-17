@@ -38,6 +38,7 @@ class WhatsAppApi:
     def send_message(self, chat_id, text):
         url = self.get_method_url('sendMessage')
         response = requests.post(url, json={'chatId': chat_id, 'message': text})
+        print('send message to', chat_id, 'with text', text)
         return response.json()
 
     def send_file(self, **kwargs):
@@ -46,8 +47,10 @@ class WhatsAppApi:
         return response.json()
 
     def get_group_data(self, group_id):
+        print(group_id)
         url = self.get_method_url('getGroupData')
         response = requests.post(url, json={'groupId': group_id})
+        print(response.text)
         return response.json()
 
 

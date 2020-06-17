@@ -6,6 +6,10 @@ class BotUser(models.Model):
     name = models.CharField(max_length=64, null=True, blank=True)
     state = models.CharField(max_length=255, default='main')
 
+    @property
+    def store_id(self):
+        return f"usr{self.id}"
+
     def __str__(self):
         return f"{self.name} ({self.chat_id})"
 

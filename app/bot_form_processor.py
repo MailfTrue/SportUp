@@ -68,13 +68,13 @@ class BotFormProcessor:
         return list(FORMS[form_key]['fields'].keys())
 
     def get_user_form_key(self, user):
-        return self.store[user.id].form
+        return self.store[user.store_id].form
 
     def get_user_form(self, user):
         return FORMS[self.get_user_form_key(user)]
 
     def get_user_field_key(self, user):
-        return self.store[user.id].field
+        return self.store[user.store_id].field
 
     def get_user_field(self, user):
         return self.get_user_form(user)[self.get_user_field_key(user)]
@@ -92,10 +92,12 @@ class BotFormProcessor:
         if not extra_data:
             extra_data = {}
         form = FORMS[form_key]
-        self.store[user.id] = {
+        self.store[user.store_id] = {
             'form': form_key,
             **extra_data
         }
+        user.state = 'form'
+        user.save()
         self.send_message(user, form['before_text'])
 
     def send_field(self, user, field):
@@ -132,7 +134,7 @@ class BotFormProcessor:
     def end_form(self, user):
         form = self.get_user_form(user)
         callback = get_func_by_path(form['callback'])
-        callback(user=user, data=self.store[user.id])
+        callback(user=user, data=self.store[user.store_id])
         self.send_message(user, form['after_text'])
 
 
