@@ -68,13 +68,13 @@ class BotFormProcessor:
         return list(FORMS[form_key]['fields'].keys())
 
     def get_user_form_key(self, user):
-        return self.store[user.store_id].form
+        return self.store[user.store_id]['form']
 
     def get_user_form(self, user):
         return FORMS[self.get_user_form_key(user)]
 
     def get_user_field_key(self, user):
-        return self.store[user.store_id].field
+        return self.store[user.store_id]['field']
 
     def get_user_field(self, user):
         return self.get_user_form(user)[self.get_user_field_key(user)]
